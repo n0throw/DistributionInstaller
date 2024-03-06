@@ -1,4 +1,4 @@
-package org.n0throw.utils.tempFile;
+package org.n0throw.utils.files;
 
 import java.io.File;
 import java.lang.ref.PhantomReference;
@@ -7,21 +7,21 @@ import java.nio.file.FileSystemException;
 import java.util.HashSet;
 
 /**
- * Фабрика временных файлов
+ * Фабрика временных файлов.
  */
 public class TempFileFactory {
     /**
-     * Поток для удаления временных файлов
+     * Поток для удаления временных файлов.
      */
     private volatile TempFileThread thread;
 
     /**
-     * Очеред временных файлов, которая позволяет понять, освободила ли JVM файл или нет
+     * Очередь временных файлов, которая позволяет понять, освободила ли JVM файл или нет.
      */
     private final ReferenceQueue<File> referenceQueue;
 
     /**
-     * Уникальынй набор ссылок на временные файлы
+     * Уникальный набор ссылок на временные файлы.
      */
     private final HashSet<TempFileReference> references;
 
@@ -42,9 +42,10 @@ public class TempFileFactory {
     /**
      * Метод регистрации файла на удаление.
      * Синхронизирует потоки, что бы случайно не удалить один файл два раза и не словить ошибку.
+     *
      * @param file Файл, который нужно будет удалить.
      */
-    public synchronized void  registerForDelete(File file) {
+    public synchronized void registerForDelete(File file) {
         references.add(new TempFileReference(file, referenceQueue));
         if (thread == null) {
             thread = new TempFileThread();
@@ -53,7 +54,7 @@ public class TempFileFactory {
     }
 
     /**
-     * Поток удаления временных файлов. Ждёт пока JVM, освободит файл, что бы его удалить
+     * Поток удаления временных файлов. Ждёт пока JVM, освободит файл, что бы его удалить.
      */
     class TempFileThread extends Thread {
 
@@ -62,6 +63,9 @@ public class TempFileFactory {
             setDaemon(true);
         }
 
+        /**
+         * Процесс потока для удаления файлов.
+         */
         @Override
         public void run() {
             while (!references.isEmpty()) {
@@ -89,14 +93,15 @@ public class TempFileFactory {
      */
     static class TempFileReference extends PhantomReference<File> {
         /**
-         * Путь к временному файлу
+         * Путь к временному файлу.
          */
         private final String path;
 
         /**
-         * Создаёт ссылку на временный файл
-         * @param file Файл
-         * @param queue Очеред ссылок на временный файл.
+         * Создаёт ссылку на временный файл.
+         *
+         * @param file  Файл.
+         * @param queue Очередь ссылок на временный файл.
          */
         TempFileReference(File file, ReferenceQueue<File> queue) {
             super(file, queue);
@@ -104,14 +109,14 @@ public class TempFileFactory {
         }
 
         /**
-         * Возвращает путь к временному файлу
+         * Возвращает путь к временному файлу.
          */
         public String getPath() {
             return path;
         }
 
         /**
-         * Удаляет временный файл
+         * Удаляет временный файл.
          */
         public boolean delete() {
             File file = new File(path);
